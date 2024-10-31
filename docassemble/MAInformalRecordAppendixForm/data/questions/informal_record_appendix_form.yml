@@ -1,0 +1,288 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+---
+metadata:
+  title: >-
+    Informal record appendix form
+  short title: >-
+    Informal record appendix form
+  description: |-
+    Informal record appendix form
+  can_I_use_this_form: |
+  before_you_start: |
+    Before you get started, you need to...
+  maturity: production
+  estimated_completion_minutes: ""
+  estimated_completion_delta: ""
+  tags: []
+  authors:
+    -  
+  original_form: []
+  original_form_published_on: ""
+  allowed_courts: []
+  typical_role: "unknown"
+  al_weaver_version: "1.11.0"
+  generated_on: "2024-10-30"
+  languages:
+    - en
+  jurisdiction: ""
+  review_date: 2024-10-30
+  form_titles:
+    - Informal record appendix form
+  form_numbers: []
+  update_notes: |
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = ""
+---
+code: |
+  github_repo_name =  'docassemble-InformalRecordAppendixForm'
+---
+code: |
+  interview_short_title = "Get a Informal record appendix form"
+---
+code: |
+  al_form_type = "other_form" 
+---
+objects:
+  - users: ALPeopleList
+---
+sections:
+  - review_informal_record_appendix_form: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_informal_record_appendix_form
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = []
+  nav.set_section("review_informal_record_appendix_form")
+  # Below sets the user_role and user_ask_role by asking a question.
+  # You can set user_ask_role directly instead to either 'plaintiff' or 'defendant'
+  user_ask_role
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].phone_number
+  users[0].email
+  set_progress(20)
+  users[0].address.address
+  second_party
+  docket_number
+  set_progress(40)
+  trial_court
+  appellee_supplemental_record_appendix
+  users[0].signature_date
+  interview_order_informal_record_appendix_form = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  informal_record_appendix_form_intro
+  interview_order_informal_record_appendix_form
+  signature_date
+  # Store anonymous data for analytics / statistics
+  store_variables_snapshot(
+      persistent=True,
+      data={
+          "zip": showifdef("users[0].address.zip"),
+          "reached_interview_end": True,
+      },
+  )
+  informal_record_appendix_form_download
+---
+id: Informal_record_appendix_form
+continue button field: informal_record_appendix_form_intro
+question: |
+  Informal record appendix form
+subquestion: |
+  Before you get started, you need to...
+
+
+---
+id: Appellee supplemental record appendix
+question: |
+  Appellee supplemental record appendix
+fields:
+  - "Appellee supplemental record appendix": appellee_supplemental_record_appendix
+  - "Appellant record appendix": appellant_record_appendix
+  - "Appendix volume total": appendix_volume_total
+---
+id: Users 0 signature date
+question: |
+  Users[0].signature date
+fields:
+  - "Date of Users[0].signature": users[0].signature_date
+    datatype: date
+  - "Users[0].pronouns": users[0].pronouns
+---
+id: Second party
+question: |
+  Second party
+fields:
+  - "Second party": second_party
+  - "First party": first_party
+---
+id: preview informal_record_appendix_form
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Edit answers" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_informal_record_appendix_form'), label='Edit answers', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: informal_record_appendix_form_preview_question    
+---
+code: |
+  signature_fields = []
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court. Edit if court venue is based on 
+  # a different address than the user's
+  [user.address.address for user in users.complete_elements()]
+  addresses_to_search = [user.address for user in users.complete_elements()]
+---
+id: informal record appendix form review screen
+event: review_informal_record_appendix_form
+question: |
+  Review your answers
+review:
+  - Edit: appellee_supplemental_record_appendix
+    button: |
+      **Appellee supplemental record appendix**:
+      ${ appellee_supplemental_record_appendix }
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+  - Edit: appellant_record_appendix
+    button: |
+      **Appellant record appendix**:
+      ${ appellant_record_appendix }
+  - Edit: second_party
+    button: |
+      **Second party**:
+      ${ second_party }
+  - Edit: docket_number
+    button: |
+      **Docket number**:
+      ${ docket_number }
+  - Edit: first_party
+    button: |
+      **First party**:
+      ${ first_party }
+  - Edit: trial_court
+    button: |
+      **Trial court**
+  
+      % if defined("trial_court.name.first"):
+      * name: ${ trial_court.name.full() }
+      % endif
+  - Edit: appendix_volume_total
+    button: |
+      **Appendix volume total**:
+      ${ appendix_volume_total }
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Signature date: |
+      row_item.signature_date if defined("row_item.signature_date") else ""
+  - Pronouns: |
+      row_item.pronouns if defined("row_item.pronouns") else ""
+  - Email: |
+      row_item.email if defined("row_item.email") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - phone_number
+  - signature_date
+  - pronouns
+  - email
+  - address.address
+  - name.first
+confirm: True
+
+---
+id: download informal_record_appendix_form
+event: informal_record_appendix_form_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_informal_record_appendix_form'), label='Edit answers', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
+
+progress: 100
+---
+# ALDocument objects specify the metadata for each template
+objects:
+  - informal_record_appendix_form_Post_interview_instructions: ALDocument.using(title="Instructions", filename="informal_record_appendix_form_next_steps.docx", enabled=True, has_addendum=False)
+  - informal_record_appendix_form_attachment: ALDocument.using(title="Informal record appendix form", filename="informal_record_appendix_form", enabled=True, has_addendum=False, )
+---
+# Bundles group the ALDocuments into separate downloads, such as for court and for the user
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[informal_record_appendix_form_Post_interview_instructions, informal_record_appendix_form_attachment], filename="informal_record_appendix_form", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[informal_record_appendix_form_attachment],  filename="informal_record_appendix_form", title="All forms to deliver to court", enabled=True)
+---
+# Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
+# used for "preview" and "final" keys, and logic in the template checks the value of 
+# `i` to show or hide the user's signature
+attachment:
+  name: Post-interview-Instructions
+  filename: informal_record_appendix_form_next_steps
+  docx template file: informal_record_appendix_form_next_steps.docx
+  variable name: informal_record_appendix_form_Post_interview_instructions[i]
+  skip undefined: True
+  tagged pdf: True
+---
+attachment:
+  name: informal record appendix form
+  filename: informal_record_appendix_form
+  variable name: informal_record_appendix_form_attachment[i]
+  skip undefined: True
+  docx template file: informal_record_appendix_form.docx
+  tagged pdf: True
+
+
+
